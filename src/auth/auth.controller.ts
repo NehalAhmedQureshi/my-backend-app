@@ -78,7 +78,7 @@ export class AuthController {
   @Get('/me')
   async get_me(@Request() req: any) {
     // Because the guard passed, req.user now has the ID from the token
-      const {details, access_token: extra} = await this.authService.get_me(req.user.sub); // Pass the user ID to the service method
+      const {details, extra} = await this.authService.get_me(req.user.sub); // Pass the user ID to the service method
     // let expires_in = this.jwtService.decode(access_token)['exp'] - Math.floor(Date.now() / 1000); // Calculate remaining time until token expires
     return {
       message: 'User details retrieved successfully',

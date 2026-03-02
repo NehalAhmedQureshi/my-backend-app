@@ -62,12 +62,7 @@ export class AuthService {
     };
   }
 
-  async generateToken(user: any) {
-    const payload = { ...user };
-    let token = await this.jwtService.signAsync(payload);
-    let expires_in = this.jwtService.decode(token)['exp'] - Math.floor(Date.now() / 1000); // Calculate remaining time until token expires
-    return { access_token: token, expires_in };
-  }
+
 
   async get_me(userId: string): Promise<any> {
     console.log('🚀 ~ AuthService ~ get_me ~ userId:', userId);
@@ -83,4 +78,11 @@ export class AuthService {
     return { details, extra: { access_token, expires_in } };
   }
   
+
+    async generateToken(user: any) {
+    const payload = { ...user };
+    let token = await this.jwtService.signAsync(payload);
+    let expires_in = this.jwtService.decode(token)['exp'] - Math.floor(Date.now() / 1000); // Calculate remaining time until token expires
+    return { access_token: token, expires_in };
+  }
 }
