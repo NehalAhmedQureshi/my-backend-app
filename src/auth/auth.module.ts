@@ -10,8 +10,8 @@ import { JwtModule } from '@nestjs/jwt';
     TypeOrmModule.forFeature([User]),
     JwtModule.register({
       global: true, // This makes the "Stamper" available everywhere
-      secret: 'MY_SECRET_STAMP_123', // This is your secret password
-      signOptions: { expiresIn: '3600s' }, // The ticket expires in 60 seconds (for testing)
+      secret: process.env.JWT_SECRET, // This is your secret password
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN as any }, // The ticket expires in 60 seconds (for testing)
     }),
   ], // Add your entities here, e.g., User
   providers: [AuthService],
