@@ -25,20 +25,21 @@ export class AuthService {
     if (exist) {
       throw new Error('Email already exists');
     }
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // 2. Create and save user
     const user = this.userRepository.create({
       first_name,
       last_name,
       email,
-      password,
+      password: hashedPassword,
     });
 
     return await this.userRepository.save(user);
   }
 
   async sign_in(email: string, password: string): Promise<any> {
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.userRepository.findOne({ where: { email },relations: ['tasks'] });
     if (!user) {
       throw new Error('User not found');
     }
@@ -60,7 +61,22 @@ export class AuthService {
   }
 
   async generateToken(user: any) {
-    const payload = { email: user.email, sub: user.id };
+    const payload = { ...user };
     return await this.jwtService.signAsync(payload);
   }
+
+  async get_me(userId: string): Promise<any> {
+    console.log('🚀 ~ AuthService ~ get_me ~ userId:', userId);
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const payload = { sub: user.id, email: user.email };
+    const access_token = await this.generateToken(payload);
+
+    const { password, ...details } = user; // Exclude password from response
+    return { details, access_token };
+  }
+  
 }

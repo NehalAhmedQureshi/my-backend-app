@@ -1,8 +1,9 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { error } from 'console';
 import * as bcrypt from 'bcrypt';
 import { ExtractJwt } from 'passport-jwt';
+import { AuthGuard } from './auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -19,12 +20,11 @@ export class AuthController {
     },
   ) {
     try {
-      const hashedPassword = await bcrypt.hash(body.password, 10);
       const user = await this.authService.sign_up(
         body.first_name,
         body.last_name,
         body.email,
-        hashedPassword,
+        body.password,
       );
       const { password, ...details } = user; // Exclude password from response
       console.log('🚀 ~ AuthController ~ sign_up ~ user:', user);
@@ -52,14 +52,16 @@ export class AuthController {
     },
   ) {
     try {
-      const { user, access_token } = await this.authService.sign_in(body.email, body.password);
-      console.log('🚀 ~ AuthController ~ sign_in ~ user:', user);
+      const { user, access_token } = await this.authService.sign_in(
+        body.email,
+        body.password,
+      );
       const { password, ...details } = user; // Exclude password from response
       return {
         message: 'User signed in successfully',
         status: 200,
         details,
-        extra:{
+        extra: {
           access_token,
           expires_in: 3600, // This should match the signOptions in JwtModule
         },
@@ -72,5 +74,21 @@ export class AuthController {
         error: error.message,
       };
     }
+  }
+
+  @UseGuards(AuthGuard) // This protects the route with your AuthGuard
+  @Get('/me')
+  async get_me(@Request() req: any) {
+    // Because the guard passed, req.user now has the ID from the token
+    const {details, access_token} = await this.authService.get_me(req.user.sub); // Pass the user ID to the service method
+    return {
+      message: 'User details retrieved successfully',
+      status: 200, // req.user data that your AuthGuard provides to link the task to that specific person.
+      details,
+      extra: {
+        access_token, // Optionally return a new token if you want to refresh it
+        expires_in: 3600, // This should match the signOptions in JwtModule
+      },
+    };
   }
 }
