@@ -4,6 +4,7 @@ import { error } from 'console';
 import * as bcrypt from 'bcrypt';
 import { ExtractJwt } from 'passport-jwt';
 import { AuthGuard } from './auth.guard';
+import { JwtService } from '@nestjs/jwt';
 
 @Controller('auth')
 export class AuthController {
@@ -52,7 +53,7 @@ export class AuthController {
     },
   ) {
     try {
-      const { user, access_token } = await this.authService.sign_in(
+      const { user, extra } = await this.authService.sign_in(
         body.email,
         body.password,
       );
@@ -61,10 +62,7 @@ export class AuthController {
         message: 'User signed in successfully',
         status: 200,
         details,
-        extra: {
-          access_token,
-          expires_in: 3600, // This should match the signOptions in JwtModule
-        },
+        extra
       };
     } catch (error) {
       console.error('Error in sign_in:', error);
@@ -80,15 +78,13 @@ export class AuthController {
   @Get('/me')
   async get_me(@Request() req: any) {
     // Because the guard passed, req.user now has the ID from the token
-    const {details, access_token} = await this.authService.get_me(req.user.sub); // Pass the user ID to the service method
+      const {details, access_token: extra} = await this.authService.get_me(req.user.sub); // Pass the user ID to the service method
+    // let expires_in = this.jwtService.decode(access_token)['exp'] - Math.floor(Date.now() / 1000); // Calculate remaining time until token expires
     return {
       message: 'User details retrieved successfully',
       status: 200, // req.user data that your AuthGuard provides to link the task to that specific person.
       details,
-      extra: {
-        access_token, // Optionally return a new token if you want to refresh it
-        expires_in: 3600, // This should match the signOptions in JwtModule
-      },
+      extra,
     };
   }
 }

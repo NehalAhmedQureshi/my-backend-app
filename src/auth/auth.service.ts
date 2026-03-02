@@ -53,16 +53,20 @@ export class AuthService {
 
     // 3. Create the "Data" for the ticket (Payload)
     const payload = { sub: user.id, email: user.email };
+    // 4. Generate the JWT token
+    const {access_token,expires_in} = await this.generateToken(payload);
 
     return {
       user,
-      access_token: await this.generateToken(payload),
+      extra:{ access_token, expires_in }
     };
   }
 
   async generateToken(user: any) {
     const payload = { ...user };
-    return await this.jwtService.signAsync(payload);
+    let token = await this.jwtService.signAsync(payload);
+    let expires_in = this.jwtService.decode(token)['exp'] - Math.floor(Date.now() / 1000); // Calculate remaining time until token expires
+    return { access_token: token, expires_in };
   }
 
   async get_me(userId: string): Promise<any> {
@@ -73,10 +77,10 @@ export class AuthService {
     }
 
     const payload = { sub: user.id, email: user.email };
-    const access_token = await this.generateToken(payload);
+    const {access_token , expires_in} = await this.generateToken(payload);
 
     const { password, ...details } = user; // Exclude password from response
-    return { details, access_token };
+    return { details, extra: { access_token, expires_in } };
   }
   
 }

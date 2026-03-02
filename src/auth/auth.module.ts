@@ -4,9 +4,11 @@ import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }), // 2. Add this FIRST
     TypeOrmModule.forFeature([User]),
     JwtModule.register({
       global: true, // This makes the "Stamper" available everywhere
