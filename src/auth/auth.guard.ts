@@ -24,12 +24,12 @@ export class AuthGuard implements CanActivate {
     try {
       // 2. Check if the "Stamp" is real using your Secret Key
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: 'MY_SECRET_STAMP_123', // Use the SAME key you used in AuthModule
+        secret: process.env.JWT_SECRET, // Use the SAME key you used in AuthModule
       });
 
       // 3. Attach user info to the request so the Controller knows who this is
       request['user'] = payload;
-    } catch {
+    } catch (error) {
       throw new UnauthorizedException('That ticket is fake or expired!');
     }
 
